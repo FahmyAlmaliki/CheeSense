@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheesense - Dashboard Real-time</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧀</text></svg>">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">🧀</span>
+            <h1>Cheesense</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/" class="active">Dashboard</a></li>
+            <li><a href="/history">Riwayat Data</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-indicator" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Header Section -->
+        <section class="dashboard-header">
+            <div class="header-content">
+                <h2>Dashboard Real-time</h2>
+                <p>Visualisasi spektrum cahaya untuk analisis kualitas keju</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="generateDemoBtn">
+                    <span class="btn-icon">📊</span>
+                    Generate Demo Data
+                </button>
+                <button class="btn btn-primary" id="refreshBtn">
+                    <span class="btn-icon">🔄</span>
+                    Refresh
+                </button>
+            </div>
+        </section>
+
+        <!-- Status Cards -->
+        <section class="status-cards">
+            <div class="card status-card">
+                <div class="card-icon sensor-icon">📡</div>
+                <div class="card-content">
+                    <h3>Sensor ID</h3>
+                    <p id="sensorId">-</p>
+                </div>
+            </div>
+            <div class="card status-card">
+                <div class="card-icon time-icon">🕐</div>
+                <div class="card-content">
+                    <h3>Update Terakhir</h3>
+                    <p id="lastUpdate">-</p>
+                </div>
+            </div>
+            <div class="card status-card">
+                <div class="card-icon dominant-icon">💡</div>
+                <div class="card-content">
+                    <h3>Warna Dominan</h3>
+                    <p id="dominantColor">-</p>
+                </div>
+            </div>
+            <div class="card status-card">
+                <div class="card-icon quality-icon">✅</div>
+                <div class="card-content">
+                    <h3>Status Kualitas</h3>
+                    <p id="qualityStatus">-</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Spectrum Chart -->
+        <section class="chart-section">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3>📊 Live Spectrum Visualizer</h3>
+                    <div class="chart-legend">
+                        <span class="legend-item">
+                            <span class="legend-color" style="background: linear-gradient(135deg, #8B5CF6, #3B82F6, #10B981, #FBBF24, #F97316, #EF4444);"></span>
+                            Spektrum AS7341
+                        </span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="spectrumChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Channel Details -->
+        <section class="channel-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🔬 Detail Channel Spektrum</h3>
+                </div>
+                <div class="channel-grid" id="channelGrid">
+                    <!-- Channel cards will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Additional Charts Row -->
+        <section class="charts-row">
+            <div class="card chart-card half-width">
+                <div class="card-header">
+                    <h3>📈 Distribusi Spektrum</h3>
+                </div>
+                <div class="chart-container-small">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card half-width">
+                <div class="card-header">
+                    <h3>📉 Clear & NIR Values</h3>
+                </div>
+                <div class="chart-container-small">
+                    <canvas id="gaugeChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2024 Cheesense - IoT Platform untuk Analisis Kualitas Keju</p>
+        <p class="footer-tech">Powered by AS7341 Spectral Sensor + Node.js + InfluxDB</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

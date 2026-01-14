@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheesense - Riwayat Data</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧀</text></svg>">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">🧀</span>
+            <h1>Cheesense</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/history" class="active">Riwayat Data</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-indicator" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Header Section -->
+        <section class="dashboard-header">
+            <div class="header-content">
+                <h2>Riwayat Data Spektrum</h2>
+                <p>Analisis trend dan stabilitas warna keju selama periode penyimpanan</p>
+            </div>
+        </section>
+
+        <!-- Filter Section -->
+        <section class="filter-section">
+            <div class="card filter-card">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="startDate">Tanggal Mulai</label>
+                        <input type="datetime-local" id="startDate" class="input-field">
+                    </div>
+                    <div class="filter-group">
+                        <label for="endDate">Tanggal Akhir</label>
+                        <input type="datetime-local" id="endDate" class="input-field">
+                    </div>
+                    <div class="filter-group">
+                        <label for="dataLimit">Limit Data</label>
+                        <select id="dataLimit" class="input-field">
+                            <option value="50">50 data</option>
+                            <option value="100" selected>100 data</option>
+                            <option value="200">200 data</option>
+                            <option value="500">500 data</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="channelSelect">Channel</label>
+                        <select id="channelSelect" class="input-field">
+                            <option value="all">Semua Channel</option>
+                            <option value="f1">F1 - 415nm (Violet)</option>
+                            <option value="f2">F2 - 445nm (Blue)</option>
+                            <option value="f3">F3 - 480nm (Cyan)</option>
+                            <option value="f4">F4 - 515nm (Green)</option>
+                            <option value="f5">F5 - 555nm (Yellow-Green)</option>
+                            <option value="f6">F6 - 590nm (Yellow)</option>
+                            <option value="f7">F7 - 630nm (Orange)</option>
+                            <option value="f8">F8 - 680nm (Red)</option>
+                            <option value="clear">Clear</option>
+                            <option value="nir">NIR</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-primary" id="applyFilterBtn">
+                            <span class="btn-icon">🔍</span>
+                            Terapkan Filter
+                        </button>
+                        <button class="btn btn-secondary" id="resetFilterBtn">
+                            <span class="btn-icon">↩️</span>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Filter Buttons -->
+        <section class="quick-filters">
+            <button class="quick-filter-btn active" data-range="1h">1 Jam</button>
+            <button class="quick-filter-btn" data-range="6h">6 Jam</button>
+            <button class="quick-filter-btn" data-range="24h">24 Jam</button>
+            <button class="quick-filter-btn" data-range="7d">7 Hari</button>
+            <button class="quick-filter-btn" data-range="30d">30 Hari</button>
+        </section>
+
+        <!-- Statistics Cards -->
+        <section class="stats-cards">
+            <div class="card stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <h4>Total Data</h4>
+                    <p class="stat-value" id="totalData">0</p>
+                </div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <h4>Nilai Rata-rata</h4>
+                    <p class="stat-value" id="avgValue">-</p>
+                </div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-icon">⬆️</div>
+                <div class="stat-content">
+                    <h4>Nilai Tertinggi</h4>
+                    <p class="stat-value" id="maxValue">-</p>
+                </div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-icon">⬇️</div>
+                <div class="stat-content">
+                    <h4>Nilai Terendah</h4>
+                    <p class="stat-value" id="minValue">-</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trend Chart -->
+        <section class="chart-section">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3>📈 Trend Spektrum Sepanjang Waktu</h3>
+                    <div class="chart-controls">
+                        <button class="chart-type-btn active" data-type="line">
+                            📈 Line
+                        </button>
+                        <button class="chart-type-btn" data-type="bar">
+                            📊 Bar
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container-large">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Chart -->
+        <section class="charts-row">
+            <div class="card chart-card half-width">
+                <div class="card-header">
+                    <h3>🔄 Perbandingan Channel</h3>
+                </div>
+                <div class="chart-container-small">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card half-width">
+                <div class="card-header">
+                    <h3>📊 Distribusi Rata-rata</h3>
+                </div>
+                <div class="chart-container-small">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Table -->
+        <section class="table-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 Tabel Data</h3>
+                    <button class="btn btn-secondary" id="exportBtn">
+                        <span class="btn-icon">📥</span>
+                        Export CSV
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Sensor ID</th>
+                                <th>F1</th>
+                                <th>F2</th>
+                                <th>F3</th>
+                                <th>F4</th>
+                                <th>F5</th>
+                                <th>F6</th>
+                                <th>F7</th>
+                                <th>F8</th>
+                                <th>Clear</th>
+                                <th>NIR</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <p id="tableInfo">Menampilkan 0 dari 0 data</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2024 Cheesense - IoT Platform untuk Analisis Kualitas Keju</p>
+        <p class="footer-tech">Powered by AS7341 Spectral Sensor + Node.js + InfluxDB</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="js/history.js"></script>
+</body>
+</html>
