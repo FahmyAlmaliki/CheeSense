@@ -221,6 +221,21 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
+    <script>
+        // Auto-detect and fix navigation links for reverse proxy
+        document.addEventListener('DOMContentLoaded', function() {
+            const basePath = window.location.pathname.startsWith('/cheesense') ? '/cheesense' : '';
+            if (basePath) {
+                // Fix navigation links
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('http') && !href.startsWith(basePath)) {
+                        link.setAttribute('href', basePath + href);
+                    }
+                });
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="js/history.js"></script>

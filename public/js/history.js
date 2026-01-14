@@ -13,8 +13,18 @@
 // Configuration & Constants
 // ============================================
 
+// Auto-detect base path from URL
+const getBasePath = () => {
+    const path = window.location.pathname;
+    // If path starts with /cheesense, use it as base
+    if (path.startsWith('/cheesense')) {
+        return '/cheesense';
+    }
+    return '';
+};
+
 const CONFIG = {
-    API_BASE: '',
+    API_BASE: getBasePath(), // Auto-detect base path for reverse proxy
     ANIMATION_DURATION: 500
 };
 

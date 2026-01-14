@@ -13,11 +13,18 @@ const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const BASE_PATH = process.env.BASE_PATH || '';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Static files with base path support
+if (BASE_PATH) {
+    app.use(BASE_PATH, express.static(path.join(__dirname, 'public')));
+} else {
+    app.use(express.static(path.join(__dirname, 'public')));
+}
 
 // InfluxDB Configuration
 const influxURL = process.env.INFLUXDB_URL || 'http://localhost:8086';
@@ -47,6 +54,9 @@ const MAX_DEMO_DATA = 1000;
 // API ENDPOINTS
 // ============================================
 
+// Create router for API routes
+const apiRouter = express.Router();
+
 /**
  * POST /api/record
  * Menerima data spektrum dari ESP32/ESP8266
@@ -59,7 +69,7 @@ const MAX_DEMO_DATA = 1000;
  *   "clear": 800, "nir": 850
  * }
  */
-app.post('/api/record', async (req, res) => {
+apiRouter.post('/record', async (req, res) => {
     try {
         const { sensor_id, f1, f2, f3, f4, f5, f6, f7, f8, clear, nir } = req.body;
 
@@ -126,7 +136,7 @@ app.post('/api/record', async (req, res) => {
  * GET /api/latest
  * Mengambil 1 data terakhir untuk dashboard real-time
  */
-app.get('/api/latest', async (req, res) => {
+apiRouter.get('/latest', async (req, res) => {
     try {
         let latestData = null;
 
@@ -200,7 +210,7 @@ app.get('/api/latest', async (req, res) => {
  * Mengambil array data untuk grafik riwayat
  * Query params: start, end (ISO timestamp)
  */
-app.get('/api/history', async (req, res) => {
+apiRouter.get('/history', async (req, res) => {
     try {
         const { start, end, limit = 100 } = req.query;
         
@@ -268,7 +278,7 @@ app.get('/api/history', async (req, res) => {
  * GET /api/status
  * Mengecek status koneksi server dan database
  */
-app.get('/api/status', async (req, res) => {
+apiRouter.get('/status', async (req, res) => {
     const status = {
         server: 'online',
         influxdb: 'unknown',
@@ -312,7 +322,7 @@ app.get('/api/status', async (req, res) => {
  * POST /api/demo/generate
  * Generate demo data for testing
  */
-app.post('/api/demo/generate', (req, res) => {
+apiRouter.post('/demo/generate', (req, res) => {
     const count = parseInt(req.body.count) || 50;
     const now = Date.now();
 
@@ -346,25 +356,43 @@ app.post('/api/demo/generate', (req, res) => {
     });
 });
 
+// Mount API router
+if (BASE_PATH) {
+    app.use(BASE_PATH + '/api', apiRouter);
+} else {
+    app.use('/api', apiRouter);
+}
+
 // ============================================
 // SERVE FRONTEND
 // ============================================
 
+// Create page router
+const pageRouter = express.Router();
+
 // Serve index.html for root
-app.get('/', (req, res) => {
+pageRouter.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Serve history page
-app.get('/history', (req, res) => {
+pageRouter.get('/history', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'history.html'));
 });
+
+// Mount page router
+if (BASE_PATH) {
+    app.use(BASE_PATH, pageRouter);
+} else {
+    app.use('/', pageRouter);
+}
 
 // ============================================
 // START SERVER
 // ============================================
 
 app.listen(PORT, () => {
+    const basePath = BASE_PATH || '';
     console.log(`
     ╔═══════════════════════════════════════════════════════╗
     ║                                                       ║
@@ -373,17 +401,17 @@ app.listen(PORT, () => {
     ║                                                       ║
     ╠═══════════════════════════════════════════════════════╣
     ║                                                       ║
-    ║   🌐 Server running at: http://localhost:${PORT}         ║
-    ║   📊 Dashboard: http://localhost:${PORT}/                ║
-    ║   📈 History:   http://localhost:${PORT}/history         ║
+    ║   🌐 Server running at: http://localhost:${PORT}${basePath}     ║
+    ║   📊 Dashboard: http://localhost:${PORT}${basePath}/            ║
+    ║   📈 History:   http://localhost:${PORT}${basePath}/history     ║
     ║                                                       ║
     ╠═══════════════════════════════════════════════════════╣
     ║   API Endpoints:                                      ║
-    ║   POST /api/record    - Input data dari ESP32         ║
-    ║   GET  /api/latest    - Data terakhir                 ║
-    ║   GET  /api/history   - Riwayat data                  ║
-    ║   GET  /api/status    - Status server                 ║
-    ║   POST /api/demo/generate - Generate demo data        ║
+    ║   POST ${basePath}/api/record    - Input data dari ESP32      ║
+    ║   GET  ${basePath}/api/latest    - Data terakhir              ║
+    ║   GET  ${basePath}/api/history   - Riwayat data               ║
+    ║   GET  ${basePath}/api/status    - Status server              ║
+    ║   POST ${basePath}/api/demo/generate - Generate demo data     ║
     ╚═══════════════════════════════════════════════════════╝
     `);
 });
