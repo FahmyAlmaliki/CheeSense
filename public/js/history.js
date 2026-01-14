@@ -46,19 +46,15 @@ const CHANNELS = {
 // Global State
 // ============================================
 
-let trendChart = null;
 let comparisonChart = null;
 let distributionChart = null;
 let currentData = [];
-let selectedChannels = 'all';
-let chartType = 'line';
 
 // ============================================
 // Initialization
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeDateInputs();
     initializeCharts();
     setupEventListeners();
     checkServerStatus();
@@ -66,121 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// Date Input Initialization
-// ============================================
-
-function initializeDateInputs() {
-    const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    
-    if (startDateInput) {
-        startDateInput.value = formatDateForInput(oneHourAgo);
-    }
-    if (endDateInput) {
-        endDateInput.value = formatDateForInput(now);
-    }
-}
-
-function formatDateForInput(date) {
-    return date.toISOString().slice(0, 16);
-}
-
-// ============================================
 // Chart Initialization
 // ============================================
 
 function initializeCharts() {
-    initTrendChart();
     initComparisonChart();
     initDistributionChart();
-}
-
-function initTrendChart() {
-    const ctx = document.getElementById('trendChart');
-    if (!ctx) return;
-    
-    const datasets = Object.keys(CHANNELS).map(key => ({
-        label: `${CHANNELS[key].name} (${CHANNELS[key].wavelength})`,
-        data: [],
-        borderColor: CHANNELS[key].color,
-        backgroundColor: CHANNELS[key].color + '20',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 2,
-        pointHoverRadius: 5,
-        hidden: !['f5', 'f6', 'f7'].includes(key) // Show only yellow-green, yellow, orange by default
-    }));
-    
-    trendChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            animation: {
-                duration: CONFIG.ANIMATION_DURATION
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: {
-                            family: 'Poppins',
-                            size: 11
-                        },
-                        usePointStyle: true,
-                        padding: 15
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#212121',
-                    bodyColor: '#757575',
-                    borderColor: '#FFC107',
-                    borderWidth: 1,
-                    padding: 12
-                }
-            },
-            scales: {
-                x: {
-                    type: 'category',
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        font: {
-                            family: 'Poppins',
-                            size: 10
-                        },
-                        maxRotation: 45,
-                        maxTicksLimit: 15
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        font: {
-                            family: 'Poppins'
-                        }
-                    }
-                }
-            }
-        }
-    });
 }
 
 function initComparisonChart() {
@@ -270,6 +157,12 @@ function initDistributionChart() {
 // ============================================
 
 function setupEventListeners() {
+    // Time Range selector
+    const timeRangeSelect = document.getElementById('timeRange');
+    if (timeRangeSelect) {
+        timeRangeSelect.addEventListener('change', loadHistoryData);
+    }
+    
     // Apply Filter Button
     const applyFilterBtn = document.getElementById('applyFilterBtn');
     if (applyFilterBtn) {
@@ -280,22 +173,6 @@ function setupEventListeners() {
     const resetFilterBtn = document.getElementById('resetFilterBtn');
     if (resetFilterBtn) {
         resetFilterBtn.addEventListener('click', resetFilters);
-    }
-    
-    // Quick Filter Buttons
-    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => handleQuickFilter(e.target));
-    });
-    
-    // Chart Type Buttons
-    document.querySelectorAll('.chart-type-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => handleChartTypeChange(e.target));
-    });
-    
-    // Channel Select
-    const channelSelect = document.getElementById('channelSelect');
-    if (channelSelect) {
-        channelSelect.addEventListener('change', handleChannelChange);
     }
     
     // Export Button
@@ -309,64 +186,30 @@ function setupEventListeners() {
 // Filter Handlers
 // ============================================
 
-function handleQuickFilter(btn) {
-    // Update active state
-    document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
-    const range = btn.dataset.range;
-    const now = new Date();
-    let startDate;
+function getTimeRangeMillis(range) {
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
     
     switch (range) {
-        case '1h':
-            startDate = new Date(now.getTime() - 60 * 60 * 1000);
-            break;
-        case '6h':
-            startDate = new Date(now.getTime() - 6 * 60 * 60 * 1000);
-            break;
-        case '24h':
-            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            break;
-        case '7d':
-            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-        case '30d':
-            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-        default:
-            startDate = new Date(now.getTime() - 60 * 60 * 1000);
+        case '15m': return 15 * minute;
+        case '30m': return 30 * minute;
+        case '1h': return hour;
+        case '3h': return 3 * hour;
+        case '6h': return 6 * hour;
+        case '12h': return 12 * hour;
+        case '24h': return 24 * hour;
+        case '3d': return 3 * day;
+        case '7d': return 7 * day;
+        case '30d': return 30 * day;
+        default: return hour;
     }
-    
-    document.getElementById('startDate').value = formatDateForInput(startDate);
-    document.getElementById('endDate').value = formatDateForInput(now);
-    
-    loadHistoryData();
-}
-
-function handleChartTypeChange(btn) {
-    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
-    chartType = btn.dataset.type;
-    updateTrendChartType();
-}
-
-function handleChannelChange() {
-    const select = document.getElementById('channelSelect');
-    selectedChannels = select.value;
-    updateTrendChartVisibility();
 }
 
 function resetFilters() {
-    initializeDateInputs();
-    
-    document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('.quick-filter-btn[data-range="1h"]').classList.add('active');
-    
-    const channelSelect = document.getElementById('channelSelect');
-    if (channelSelect) {
-        channelSelect.value = 'all';
+    const timeRangeSelect = document.getElementById('timeRange');
+    if (timeRangeSelect) {
+        timeRangeSelect.value = '1h';
     }
     
     loadHistoryData();
@@ -377,16 +220,19 @@ function resetFilters() {
 // ============================================
 
 async function loadHistoryData() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
+    const timeRange = document.getElementById('timeRange').value;
     const limit = document.getElementById('dataLimit').value;
+    
+    const now = new Date();
+    const rangeMillis = getTimeRangeMillis(timeRange);
+    const startDate = new Date(now.getTime() - rangeMillis);
     
     try {
         showLoading(true);
         
         const params = new URLSearchParams({
-            start: new Date(startDate).toISOString(),
-            end: new Date(endDate).toISOString(),
+            start: startDate.toISOString(),
+            end: now.toISOString(),
             limit: limit
         });
         
@@ -428,101 +274,9 @@ async function checkServerStatus() {
 // ============================================
 
 function updateAllVisualization() {
-    updateStats();
-    updateTrendChart();
     updateComparisonChart();
     updateDistributionChart();
     updateDataTable();
-}
-
-function updateStats() {
-    const totalDataEl = document.getElementById('totalData');
-    const avgValueEl = document.getElementById('avgValue');
-    const maxValueEl = document.getElementById('maxValue');
-    const minValueEl = document.getElementById('minValue');
-    
-    if (currentData.length === 0) {
-        if (totalDataEl) totalDataEl.textContent = '0';
-        if (avgValueEl) avgValueEl.textContent = '-';
-        if (maxValueEl) maxValueEl.textContent = '-';
-        if (minValueEl) minValueEl.textContent = '-';
-        return;
-    }
-    
-    // Calculate statistics for F6 (Yellow - most relevant for cheese)
-    const f6Values = currentData.map(d => d.f6 || 0);
-    const avg = f6Values.reduce((a, b) => a + b, 0) / f6Values.length;
-    const max = Math.max(...f6Values);
-    const min = Math.min(...f6Values);
-    
-    if (totalDataEl) totalDataEl.textContent = currentData.length;
-    if (avgValueEl) avgValueEl.textContent = avg.toFixed(2);
-    if (maxValueEl) maxValueEl.textContent = max.toFixed(2);
-    if (minValueEl) minValueEl.textContent = min.toFixed(2);
-}
-
-function updateTrendChart() {
-    if (!trendChart || currentData.length === 0) return;
-    
-    // Prepare labels (timestamps)
-    const labels = currentData.map(d => {
-        const date = new Date(d.timestamp);
-        return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    });
-    
-    // Update each dataset
-    const channelKeys = Object.keys(CHANNELS);
-    channelKeys.forEach((key, index) => {
-        if (trendChart.data.datasets[index]) {
-            trendChart.data.datasets[index].data = currentData.map(d => d[key] || 0);
-        }
-    });
-    
-    trendChart.data.labels = labels;
-    trendChart.update();
-    
-    updateTrendChartVisibility();
-}
-
-function updateTrendChartType() {
-    if (!trendChart) return;
-    
-    trendChart.config.type = chartType;
-    
-    // Adjust options based on type
-    if (chartType === 'bar') {
-        trendChart.data.datasets.forEach(ds => {
-            ds.fill = false;
-            ds.borderWidth = 1;
-        });
-    } else {
-        trendChart.data.datasets.forEach(ds => {
-            ds.fill = false;
-            ds.borderWidth = 2;
-        });
-    }
-    
-    trendChart.update();
-}
-
-function updateTrendChartVisibility() {
-    if (!trendChart) return;
-    
-    const channelKeys = Object.keys(CHANNELS);
-    
-    if (selectedChannels === 'all') {
-        // Show default channels (F5, F6, F7)
-        channelKeys.forEach((key, index) => {
-            trendChart.data.datasets[index].hidden = !['f5', 'f6', 'f7'].includes(key);
-        });
-    } else {
-        // Show only selected channel
-        channelKeys.forEach((key, index) => {
-            trendChart.data.datasets[index].hidden = key !== selectedChannels;
-        });
-    }
-    
-    trendChart.update();
 }
 
 function updateComparisonChart() {
@@ -606,29 +360,45 @@ function exportToCSV() {
         return;
     }
     
-    const headers = ['Timestamp', 'Sensor ID', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'Clear', 'NIR'];
+    // Headers dengan format yang Excel-friendly
+    const headers = ['Timestamp', 'Sensor ID', '415nm', '445nm', '480nm', '515nm', '555nm', '590nm', '630nm', '680nm', 'Clear', '910nm'];
     
-    let csv = headers.join(',') + '\n';
+    // Gunakan semicolon sebagai delimiter untuk kompatibilitas Excel Indonesia
+    const delimiter = ';';
+    let csv = headers.join(delimiter) + '\n';
     
     currentData.forEach(row => {
+        // Format timestamp yang lebih readable
+        const date = new Date(row.timestamp);
+        const formattedDate = date.toLocaleString('id-ID', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
         const values = [
-            new Date(row.timestamp).toISOString(),
+            formattedDate,
             row.sensor_id || '',
-            row.f1 || 0,
-            row.f2 || 0,
-            row.f3 || 0,
-            row.f4 || 0,
-            row.f5 || 0,
-            row.f6 || 0,
-            row.f7 || 0,
-            row.f8 || 0,
-            row.clear || 0,
-            row.nir || 0
+            (row.f1 || 0).toFixed(1),
+            (row.f2 || 0).toFixed(1),
+            (row.f3 || 0).toFixed(1),
+            (row.f4 || 0).toFixed(1),
+            (row.f5 || 0).toFixed(1),
+            (row.f6 || 0).toFixed(1),
+            (row.f7 || 0).toFixed(1),
+            (row.f8 || 0).toFixed(1),
+            (row.clear || 0).toFixed(1),
+            (row.nir || 0).toFixed(1)
         ];
-        csv += values.join(',') + '\n';
+        csv += values.join(delimiter) + '\n';
     });
     
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    // Tambahkan BOM untuk UTF-8 agar Excel recognize encoding dengan benar
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     

@@ -297,12 +297,6 @@ function setupEventListeners() {
             showToast('Data refreshed!', 'success');
         });
     }
-    
-    // Generate demo data button
-    const generateDemoBtn = document.getElementById('generateDemoBtn');
-    if (generateDemoBtn) {
-        generateDemoBtn.addEventListener('click', generateDemoData);
-    }
 }
 
 // ============================================
@@ -346,29 +340,6 @@ async function checkServerStatus() {
         }
     } catch (error) {
         setConnectionStatus(false);
-    }
-}
-
-async function generateDemoData() {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/demo/generate`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ count: 50 })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast(`${result.message}`, 'success');
-            fetchLatestData();
-        } else {
-            showToast('Gagal generate demo data', 'error');
-        }
-    } catch (error) {
-        showToast('Error: ' + error.message, 'error');
     }
 }
 
