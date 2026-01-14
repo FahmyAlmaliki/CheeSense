@@ -4,13 +4,14 @@
 
 Cheesense adalah platform web yang memvisualisasikan data spektrum cahaya dari sensor AS7341 untuk menganalisis kualitas keju. Sistem ini menerima data dari mikrokontroler (ESP32/ESP8266), menyimpannya ke database time-series, dan menyajikannya dalam bentuk grafik interaktif.
 
-![Cheesense Dashboard](https://img.shields.io/badge/Platform-IoT-blue) ![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![License](https://img.shields.io/badge/License-MIT-yellow)
+![Cheesense Dashboard](https://img.shields.io/badge/Platform-IoT-blue) ![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ## 📋 Daftar Isi
 
 - [Fitur](#-fitur)
 - [Arsitektur](#-arsitektur)
-- [Instalasi](#-instalasi)
+- [Quick Start dengan Docker](#-quick-start-dengan-docker)
+- [Instalasi Manual](#-instalasi-manual)
 - [Konfigurasi](#-konfigurasi)
 - [Menjalankan Aplikasi](#-menjalankan-aplikasi)
 - [API Endpoints](#-api-endpoints)
@@ -41,13 +42,65 @@ Cheesense adalah platform web yang memvisualisasikan data spektrum cahaya dari s
 ```
 ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
 │   ESP32 +   │ HTTP │   Node.js   │      │  InfluxDB   │
-│   AS7341    │ ───► │   Express   │ ◄──► │  (Optional) │
+│   AS7341    │ ───► │   Express   │ ◄──► │   Docker    │
 └─────────────┘      └─────────────┘      └─────────────┘
                             │
                             ▼
                      ┌─────────────┐
                      │   Browser   │
                      │  (Chart.js) │
+```
+
+## 🚀 Quick Start dengan Docker
+
+### Prasyarat
+- Docker & Docker Compose v2
+- InfluxDB container sudah running (sudah ada di docker-compose.yml)
+
+### Cara Tercepat - Menggunakan Helper Script
+
+```bash
+# 1. Pindah ke direktori CheeSense
+cd /home/selene/iot_platform/CheeSense
+
+# 2. Jalankan script deployment
+./deploy_cheesense.sh
+
+# 3. Pilih opsi 8 (Full deployment)
+```
+
+### Cara Manual
+
+```bash
+# 1. Build image
+cd /home/selene/iot_platform
+docker compose build cheesense-web
+
+# 2. Start container
+docker compose up -d cheesense-web
+
+# 3. Cek status
+docker compose ps cheesense-web
+```
+
+### Akses Dashboard
+
+- **Dashboard:** http://localhost:8085
+- **History Page:** http://localhost:8085/history
+- **API Status:** http://localhost:8085/api/status
+
+### Test dengan Demo Data
+
+```bash
+# Generate 50 data points demo
+curl -X POST http://localhost:8085/api/demo/generate \
+  -H "Content-Type: application/json" \
+  -d '{"count": 50}'
+```
+
+Lihat dokumentasi lengkap di [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)
+
+## 📦 Instalasi Manual
                      └─────────────┘
 ```
 

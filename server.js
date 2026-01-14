@@ -23,7 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const influxURL = process.env.INFLUXDB_URL || 'http://localhost:8086';
 const influxToken = process.env.INFLUXDB_TOKEN || '';
 const influxOrg = process.env.INFLUXDB_ORG || 'cheesense';
-const influxBucket = process.env.INFLUXDB_BUCKET || 'cheesense_db';
+const influxBucket = process.env.INFLUXDB_BUCKET || 'cheesense';
 
 // Initialize InfluxDB Client
 let influxClient = null;
