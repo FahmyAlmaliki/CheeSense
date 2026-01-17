@@ -14,7 +14,7 @@
     "as7341",
     "influxdb"
   ],
-  "author": "Cheesense Team",
+  "author": "CheeSense Team",
   "license": "MIT",
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",

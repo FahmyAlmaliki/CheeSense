@@ -1,5 +1,5 @@
 /**
- * Cheesense Web Dashboard - Backend Server
+ * CheeSense Web Dashboard - Backend Server
  * IoT Platform untuk Visualisasi Analisis Kualitas Keju
  * 
  * Stack: Node.js + Express.js + InfluxDB
