@@ -14,19 +14,13 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
-            <span class="logo">🧀</span>
+            <img src="images/CheeSense_Logo.png" alt="CheeSense Logo" class="logo-img">
             <h1>CheeSense</h1>
         </div>
         <ul class="nav-links">
             <li><a href="/" class="active">Dashboard</a></li>
             <li><a href="/history">Riwayat Data</a></li>
         </ul>
-        <div class="nav-status">
-            <span class="status-indicator" id="connectionStatus">
-                <span class="status-dot"></span>
-                <span class="status-text">Connecting...</span>
-            </span>
-        </div>
     </nav>
 
     <!-- Main Content -->
@@ -77,8 +71,44 @@
             </div>
         </section>
 
+        <!-- Fuzzy Classification Section -->
+        <section class="fuzzy-classification-section">
+            <div class="card fuzzy-card">
+                <div class="card-header">
+                    <h3>🧠 Klasifikasi Fuzzy Logic (555nm)</h3>
+                </div>
+                <div class="fuzzy-content">
+                    <div class="fuzzy-status">
+                        <div class="status-badge" id="fuzzyStatus">
+                            <span class="status-text">Menunggu Data...</span>
+                        </div>
+                    </div>
+                    <div class="fuzzy-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">Intensitas (F5)</div>
+                            <div class="metric-value" id="fuzzyIntensity">-</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Confidence Fresh</div>
+                            <div class="metric-value" id="fuzzyFresh">-</div>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill fresh" id="fuzzyFreshBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Confidence Spoiled</div>
+                            <div class="metric-value" id="fuzzySpoiled">-</div>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill spoiled" id="fuzzySpoiledBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Live Spectrum Chart -->
-        <section class="chart-section">
+        <section class="chart-section"
             <div class="card chart-card">
                 <div class="card-header">
                     <h3>📊 Live Spectrum Visualizer</h3>

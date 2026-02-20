@@ -314,7 +314,7 @@ function updateDataTable() {
     if (currentData.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="12" class="empty-state">
+                <td colspan="15" class="empty-state">
                     <div class="empty-state-icon">📭</div>
                     <h3>Tidak ada data</h3>
                     <p>Coba ubah filter atau generate demo data</p>
@@ -328,6 +328,19 @@ function updateDataTable() {
     let html = '';
     currentData.slice().reverse().forEach(row => {
         const date = new Date(row.timestamp);
+        const classification = row.classification || {};
+        const status = classification.status || '-';
+        const freshConf = classification.fresh_confidence !== undefined ? 
+            (classification.fresh_confidence * 100).toFixed(1) + '%' : '-';
+        const spoiledConf = classification.spoiled_confidence !== undefined ? 
+            (classification.spoiled_confidence * 100).toFixed(1) + '%' : '-';
+        
+        // Determine status class for styling
+        let statusClass = '';
+        if (status === 'Fresh') statusClass = 'status-fresh';
+        else if (status === 'Moderate') statusClass = 'status-moderate';
+        else if (status === 'Spoiled') statusClass = 'status-spoiled';
+        
         html += `
             <tr>
                 <td>${date.toLocaleString('id-ID')}</td>
@@ -342,6 +355,9 @@ function updateDataTable() {
                 <td>${(row.f8 || 0).toFixed(1)}</td>
                 <td>${(row.clear || 0).toFixed(1)}</td>
                 <td>${(row.nir || 0).toFixed(1)}</td>
+                <td><span class="status-cell ${statusClass}">${status}</span></td>
+                <td class="confidence-cell">${freshConf}</td>
+                <td class="confidence-cell">${spoiledConf}</td>
             </tr>
         `;
     });
@@ -361,7 +377,7 @@ function exportToCSV() {
     }
     
     // Headers dengan format yang Excel-friendly
-    const headers = ['Timestamp', 'Sensor ID', '415nm', '445nm', '480nm', '515nm', '555nm', '590nm', '630nm', '680nm', 'Clear', '910nm'];
+    const headers = ['Timestamp', 'Sensor ID', '415nm', '445nm', '480nm', '515nm', '555nm', '590nm', '630nm', '680nm', 'Clear', '910nm', 'Status', 'Fresh%', 'Spoiled%'];
     
     // Gunakan semicolon sebagai delimiter untuk kompatibilitas Excel Indonesia
     const delimiter = ';';
@@ -391,7 +407,12 @@ function exportToCSV() {
             (row.f7 || 0).toFixed(1),
             (row.f8 || 0).toFixed(1),
             (row.clear || 0).toFixed(1),
-            (row.nir || 0).toFixed(1)
+            (row.nir || 0).toFixed(1),
+            row.classification?.status || '-',
+            row.classification?.fresh_confidence !== undefined ? 
+                (row.classification.fresh_confidence * 100).toFixed(1) : '-',
+            row.classification?.spoiled_confidence !== undefined ? 
+                (row.classification.spoiled_confidence * 100).toFixed(1) : '-'
         ];
         csv += values.join(delimiter) + '\n';
     });
@@ -418,20 +439,8 @@ function exportToCSV() {
 // ============================================
 
 function setConnectionStatus(connected) {
-    const indicator = document.getElementById('connectionStatus');
-    if (!indicator) return;
-    
-    const statusText = indicator.querySelector('.status-text');
-    
-    if (connected) {
-        indicator.classList.remove('disconnected');
-        indicator.classList.add('connected');
-        statusText.textContent = 'Connected';
-    } else {
-        indicator.classList.remove('connected');
-        indicator.classList.add('disconnected');
-        statusText.textContent = 'Disconnected';
-    }
+    // Status indicator removed from UI, function kept for compatibility
+    return;
 }
 
 function showLoading(show) {

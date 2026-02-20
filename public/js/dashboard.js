@@ -349,6 +349,7 @@ async function checkServerStatus() {
 
 function updateDashboard(data) {
     updateStatusCards(data);
+    updateFuzzyClassification(data);
     updateSpectrumChart(data);
     updateChannelGrid(data);
     updatePieChart(data);
@@ -384,6 +385,62 @@ function updateStatusCards(data) {
         const quality = analyzeQuality(data);
         qualityStatusEl.textContent = quality.status;
         qualityStatusEl.style.color = quality.color;
+    }
+}
+
+function updateFuzzyClassification(data) {
+    // Check if classification data exists
+    if (!data.classification) {
+        return;
+    }
+    
+    const classification = data.classification;
+    
+    // Update status badge
+    const statusEl = document.getElementById('fuzzyStatus');
+    if (statusEl) {
+        const statusText = statusEl.querySelector('.status-text');
+        if (statusText) {
+            statusText.textContent = classification.status;
+        }
+        
+        // Update badge style based on status
+        statusEl.className = 'status-badge';
+        if (classification.status === 'Fresh') {
+            statusEl.classList.add('fresh');
+        } else if (classification.status === 'Moderate') {
+            statusEl.classList.add('moderate');
+        } else if (classification.status === 'Spoiled') {
+            statusEl.classList.add('spoiled');
+        } else {
+            statusEl.classList.add('waiting');
+        }
+    }
+    
+    // Update intensity value
+    const intensityEl = document.getElementById('fuzzyIntensity');
+    if (intensityEl) {
+        intensityEl.textContent = classification.intensity_555nm.toFixed(2);
+    }
+    
+    // Update fresh confidence
+    const freshEl = document.getElementById('fuzzyFresh');
+    if (freshEl) {
+        freshEl.textContent = `${(classification.fresh_confidence * 100).toFixed(1)}%`;
+    }
+    const freshBarEl = document.getElementById('fuzzyFreshBar');
+    if (freshBarEl) {
+        freshBarEl.style.width = `${classification.fresh_confidence * 100}%`;
+    }
+    
+    // Update spoiled confidence
+    const spoiledEl = document.getElementById('fuzzySpoiled');
+    if (spoiledEl) {
+        spoiledEl.textContent = `${(classification.spoiled_confidence * 100).toFixed(1)}%`;
+    }
+    const spoiledBarEl = document.getElementById('fuzzySpoiledBar');
+    if (spoiledBarEl) {
+        spoiledBarEl.style.width = `${classification.spoiled_confidence * 100}%`;
     }
 }
 
@@ -475,20 +532,8 @@ function analyzeQuality(data) {
 
 function setConnectionStatus(connected) {
     isConnected = connected;
-    const indicator = document.getElementById('connectionStatus');
-    if (!indicator) return;
-    
-    const statusText = indicator.querySelector('.status-text');
-    
-    if (connected) {
-        indicator.classList.remove('disconnected');
-        indicator.classList.add('connected');
-        statusText.textContent = 'Connected';
-    } else {
-        indicator.classList.remove('connected');
-        indicator.classList.add('disconnected');
-        statusText.textContent = 'Disconnected';
-    }
+    // Status indicator removed from UI, function kept for compatibility
+    return;
 }
 
 function showToast(message, type = 'info') {

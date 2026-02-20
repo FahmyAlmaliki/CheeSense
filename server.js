@@ -51,6 +51,50 @@ let demoData = [];
 const MAX_DEMO_DATA = 1000;
 
 // ============================================
+// FUZZY LOGIC CLASSIFICATION
+// ============================================
+
+// Fuzzy Logic Configuration
+const THRESHOLD = 6458;  // Threshold value for fresh/spoiled classification
+const K = 1700;           // Smoothness factor for sigmoid function
+
+/**
+ * Calculate fuzzy membership value for "Fresh" category
+ * Uses sigmoid function for smooth transition
+ * @param {number} x - Intensity value (f5/555nm)
+ * @returns {number} Fresh confidence (0-1)
+ */
+function fuzzyFreshMembership(x) {
+    return 1 / (1 + Math.exp(-(x - THRESHOLD) / K));
+}
+
+/**
+ * Classify cheese quality based on spectral intensity
+ * @param {number} intensity_555nm - F5 channel value (555nm)
+ * @returns {object} Classification result with confidence levels
+ */
+function classifySample(intensity_555nm) {
+    const fresh = fuzzyFreshMembership(intensity_555nm);
+    const spoiled = 1 - fresh;
+
+    let status;
+    if (fresh > 0.5) {
+        status = "Fresh";
+    } else if (fresh > 0.25) {
+        status = "Moderate";
+    } else {
+        status = "Spoiled";
+    }
+
+    return {
+        intensity_555nm: intensity_555nm,
+        fresh_confidence: Number(fresh.toFixed(3)),
+        spoiled_confidence: Number(spoiled.toFixed(3)),
+        status: status
+    };
+}
+
+// ============================================
 // API ENDPOINTS
 // ============================================
 
@@ -96,6 +140,10 @@ apiRouter.post('/record', async (req, res) => {
             clear: parseFloat(clear) || 0,
             nir: parseFloat(nir) || 0
         };
+
+        // Add fuzzy classification based on F5 (555nm)
+        const classification = classifySample(dataPoint.f5);
+        dataPoint.classification = classification;
 
         // Try to write to InfluxDB
         if (writeApi) {
@@ -197,6 +245,11 @@ apiRouter.get('/latest', async (req, res) => {
             };
         }
 
+        // Add classification if not already present
+        if (!latestData.classification) {
+            latestData.classification = classifySample(latestData.f5 || 0);
+        }
+
         res.json({ success: true, data: latestData });
 
     } catch (error) {
@@ -261,6 +314,14 @@ apiRouter.get('/history', async (req, res) => {
             }).slice(-parseInt(limit));
         }
 
+        // Add classification to all history data if not present
+        historyData = historyData.map(record => {
+            if (!record.classification) {
+                record.classification = classifySample(record.f5 || 0);
+            }
+            return record;
+        });
+
         res.json({ 
             success: true, 
             data: historyData,
@@ -270,6 +331,35 @@ apiRouter.get('/history', async (req, res) => {
 
     } catch (error) {
         console.error('Error fetching history:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/classify
+ * Klasifikasi sampel berdasarkan intensitas 555nm
+ * 
+ * Body JSON:
+ * {
+ *   "intensity_555nm": 6500
+ * }
+ */
+apiRouter.post('/classify', (req, res) => {
+    try {
+        const { intensity_555nm } = req.body;
+
+        if (typeof intensity_555nm !== "number") {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid input. intensity_555nm must be a number' 
+            });
+        }
+
+        const result = classifySample(intensity_555nm);
+        res.json({ success: true, data: result });
+
+    } catch (error) {
+        console.error('Error classifying sample:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -328,20 +418,24 @@ apiRouter.post('/demo/generate', (req, res) => {
 
     for (let i = 0; i < count; i++) {
         const timestamp = new Date(now - (count - i) * 60000); // 1 minute intervals
-        demoData.push({
+        const f5_value = 500 + Math.random() * 250;  // 555nm - Yellow-Green
+        const dataPoint = {
             timestamp: timestamp.toISOString(),
             sensor_id: 'cheesense_demo',
             f1: 300 + Math.random() * 200,  // 415nm - Violet
             f2: 350 + Math.random() * 200,  // 445nm - Blue
             f3: 400 + Math.random() * 200,  // 480nm - Cyan
             f4: 450 + Math.random() * 200,  // 515nm - Green
-            f5: 500 + Math.random() * 250,  // 555nm - Yellow-Green
+            f5: f5_value,
             f6: 550 + Math.random() * 300,  // 590nm - Yellow (highest for cheese)
             f7: 480 + Math.random() * 250,  // 630nm - Orange
             f8: 400 + Math.random() * 200,  // 680nm - Red
             clear: 600 + Math.random() * 300,
             nir: 350 + Math.random() * 200
-        });
+        };
+        // Add classification
+        dataPoint.classification = classifySample(f5_value);
+        demoData.push(dataPoint);
     }
 
     // Keep only last MAX_DEMO_DATA

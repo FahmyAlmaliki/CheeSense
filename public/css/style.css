@@ -139,6 +139,14 @@ button {
     animation: bounce 2s infinite;
 }
 
+.nav-brand .logo-img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    animation: bounce 2s infinite;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
 @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-5px); }
@@ -361,6 +369,104 @@ button {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
+}
+
+/* ============================================
+   Fuzzy Classification Section
+   ============================================ */
+.fuzzy-classification-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.fuzzy-card {
+    padding: 0;
+}
+
+.fuzzy-content {
+    padding: var(--spacing-lg);
+}
+
+.fuzzy-status {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 1.25rem;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+}
+
+.status-badge.fresh {
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    color: white;
+}
+
+.status-badge.moderate {
+    background: linear-gradient(135deg, #FF9800, #FFA726);
+    color: white;
+}
+
+.status-badge.spoiled {
+    background: linear-gradient(135deg, #F44336, #E57373);
+    color: white;
+}
+
+.status-badge.waiting {
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+}
+
+.fuzzy-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.metric-item {
+    background: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.metric-bar {
+    height: 8px;
+    background: var(--bg-white);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.metric-bar-fill {
+    height: 100%;
+    transition: width var(--transition-normal);
+    border-radius: var(--radius-full);
+}
+
+.metric-bar-fill.fresh {
+    background: linear-gradient(90deg, #4CAF50, #66BB6A);
+}
+
+.metric-bar-fill.spoiled {
+    background: linear-gradient(90deg, #F44336, #E57373);
 }
 
 /* ============================================
@@ -674,6 +780,33 @@ button {
 
 .data-table tbody tr:nth-child(even):hover {
     background: var(--bg-cream);
+}
+
+.data-table .status-cell {
+    font-weight: 600;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.data-table .status-fresh {
+    background: rgba(76, 175, 80, 0.15);
+    color: #2E7D32;
+}
+
+.data-table .status-moderate {
+    background: rgba(255, 152, 0, 0.15);
+    color: #E65100;
+}
+
+.data-table .status-spoiled {
+    background: rgba(244, 67, 54, 0.15);
+    color: #C62828;
+}
+
+.data-table .confidence-cell {
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 .table-footer {
